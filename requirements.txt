@@ -1,0 +1,5 @@
+fastapi==0.75.0
+fastapi_sessions==0.3.2
+pydantic==1.9.0
+PyJWT==2.3.0
+uvicorn==0.15.0
