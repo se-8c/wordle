@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vue JS call function on load Example - ItSolutionStuff.com</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+</head>
+<body>
+<div id="app">
+  {{ message }}
+</div>
+<script type="text/javascript">
+    var app = new Vue({
+      el: '#app',
+      data: {
+        message: 'Hello Vue!'
+      },
+      methods:{
+            myFunctionOnLoad: function() {
+            console.log('call on load...');
+        }
+      },
+      created: function(){
+        this.myFunctionOnLoad()
+      }
+    })
+</script>
+</body>
+</html>

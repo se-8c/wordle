@@ -2,51 +2,76 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RMIT Wordle Clone!</title>
+
   <script src="https://unpkg.com/vue@next"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
   <!-- import CSS -->
   <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+
   <!-- import JavaScript -->
   <script src="https://unpkg.com/element-plus"></script>
-  <title>Element Plus demo</title>
+
 </head>
 
 <body>
-  <div id="app">
+  <div id="app" v-on:keyup>
+    <div id="container">
+      <div id="game">
+        <header>
+          <h1 class="title">RMIT WORDLE</h1>
+        </header>
+        <div id="board-container">
+          <div id="board"></div>
+        </div>
 
-
-
-    <div class="common-layout">
-      <el-container>
-        <el-header>Header</el-header>
-        <el-main>Wordle
-          <el-input v-model="input" placeholder="Please input" />
-          </el-input>
-          <el-button @click="test(this)">Submit</el-button>
-          <div v-if="isTrue">
-            <div> answer : {{ resultObj.data.data.word }}
-            <div v-for="(item, index) in resultObj.data.data.WordleArray[0]">
-              <div v-if="item.code == 1" style="background-color:#82FF82;padding:10px;margin-bottom:5px;">
-                {{ index +1 }} : {{ item.letter }}
-              </div>
-              <div v-if="item.code == -1">
-                {{ index +1 }} : {{ item.letter }}
-              </div>
-              <div v-if="item.code == -2">
-                {{ index +1 }} : {{ item.letter }}
-              </div>
-            </div>
+        <div id="keyboard-container">
+          <div class="keyboard-row">
+            <button data-key="q" v-on:keyup.enter="keypress(a)">q</button>
+            <button data-key="w">w</button>
+            <button data-key="e">e</button>
+            <button data-key="r">r</button>
+            <button data-key="t">t</button>
+            <button data-key="y">y</button>
+            <button data-key="u">u</button>
+            <button data-key="i">i</button>
+            <button data-key="o">o</button>
+            <button data-key="p">p</button>
           </div>
+          <div class="keyboard-row">
+            <div class="spacer-half"></div>
+            <button data-key="a">a</button>
+            <button data-key="s">s</button>
+            <button data-key="d">d</button>
+            <button data-key="f">f</button>
+            <button data-key="g">g</button>
+            <button data-key="h">h</button>
+            <button data-key="j">j</button>
+            <button data-key="k">k</button>
+            <button data-key="l">l</button>
+            <div class="spacer-half"></div>
+          </div>
+          <div class="keyboard-row">
+            <button data-key="enter" class="wide-button">Enter</button>
+            <button data-key="z">z</button>
+            <button data-key="x">x</button>
+            <button data-key="c">c</button>
+            <button data-key="v">v</button>
+            <button data-key="b">b</button>
+            <button data-key="n">n</button>
+            <button data-key="m">m</button>
+            <button data-key="del" class="wide-button">Del</button>
+          </div>
+        </div>
+      </div>
 
-          {{result}}
-        </el-main>
-      </el-container>
     </div>
-
-
-
-
   </div>
   <script>
     //const axios = require('axios').default;
@@ -58,13 +83,27 @@
           input: "",
           result: "",
           resultObj: "",
-          isTrue: false
+          isTrue: false,
+          currentSquareID :1,
+          currentLine : 1,
+          currentWordArray :[]
         };
       },
+      mounted() {
+        this.createSquare()
+        window.addEventListener("keypress", e => {
+          document.getElementById(this.currentSquareID).innerHTML = String.fromCharCode(e.keyCode)
+          this.currentSquareID++
+          this.currentWordArray.push(String.fromCharCode(e.keyCode))
+          if(this.currentWordArray.length == 5){
+            this.postWord(this)
+          }
+        });
+      },
       methods: {
-        test(ethis) {
+        postWord(ethis) {
           elderThis = ethis
-          axios.get('/games/' + this.input)
+          axios.get('/games/' + elderThis.getWorldFromCurrentArray())
             .then(function (response) {
               // handle success
               console.log(response);
@@ -82,24 +121,39 @@
             });
 
         },
+        createSquare() {
+          const gameBoard = document.getElementById("board");
+            for (let index = 0; index < 30; index++) {
+              let square = document.createElement("div");
+              square.classList.add("square");
+              square.classList.add("animate__animated");
+              square.setAttribute("id", index + 1);
+              gameBoard.appendChild(square);
+            }
+        },
+        getWorldFromCurrentArray(){
+          result = ""
+          this.currentWordArray.forEach(element => result = result + element);
+          return result
 
+        },
         resultHandle(data) {
           if (data.code == 1) {
             elderThis.isTrue = true
-
             //alert(data.data.data.WordleArray)
-
           }
-        }
+        },
+      },
+      onMounted() {
+        console.log("123")
       }
     };
     const app = Vue.createApp(App);
-
-
-
-
     app.use(ElementPlus);
     app.mount("#app");
+
+
+
   </script>
 </body>
 
