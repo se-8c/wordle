@@ -39,7 +39,7 @@ class TernarySearchTreeDictionary():
         """
         for item in words:
             self.insertHelper(item)
-        pass 
+        return True 
 
 
     def search(self, word: str) -> str:
@@ -83,24 +83,6 @@ class TernarySearchTreeDictionary():
         else:
             return False
 
-
-    def autocomplete(self, word: str) ->  List[str]:
-        """
-        return a list of 3 most-frequent words in the dictionary that have 'word' as a prefix
-        @param word: word to be autocompleted
-        @return: a list (could be empty) of (at most) 3 most-frequent words with prefix 'word'
-        """
-
-        self.result = []
-        node = self.searchHelper(self.rootNode,word,0)
-        if node is not None:
-            if node.end_word:
-                self.result.append(word)
-            self.startsWith(node.middle,word)
-            return self.result[:3]
-        return []
-
-
     def insertHelper(self, word: str) -> None:
         """
         insert a word and its frequency to the dictionary
@@ -129,18 +111,6 @@ class TernarySearchTreeDictionary():
         else:
             node.end_word = True
         return node
-
-    def startsWith(self,node : Node, prefix_word : str):
-        if node is None:
-            return None
-        if node.end_word:
-            self.result.append(prefix_word + node.letter)
-        if node.left is not None:
-            self.startsWith(node.left,prefix_word)
-        if node.right is not None:
-            self.startsWith(node.right,prefix_word)
-        if node.middle is not None:
-            self.startsWith(node.middle,prefix_word + node.letter)
 
     def searchHelper(self,node :Node,word : str,index : int) -> Node:
         if node is None:
