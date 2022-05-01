@@ -1,29 +1,135 @@
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <script src="https://unpkg.com/vue@next"></script>
-    <!-- import CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
-    <!-- import JavaScript -->
-    <script src="https://unpkg.com/element-plus"></script>
-    <title>Element Plus demo</title>
-  </head>
-  <body>
-    <div id="app">
-      <el-button>{{ message }}</el-button>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RMIT Wordle Clone!</title>
+
+  <script src="https://unpkg.com/vue@next"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+
+  <!-- import JavaScript -->
+  <script src="https://unpkg.com/element-plus"></script>
+
+</head>
+
+<body>
+  <div id="app" v-on:keyup>
+    <div id="container">
+      <div id="game">
+        <header>
+          <h1 class="title">RMIT WORDLE</h1>
+        </header>
+        <div id="board-container">
+          <div id="board"></div>
+        </div>
+      </div>
+
     </div>
-    <script>
-      const App = {
-        data() {
-          return {
-            message: "Hello Element Plus",
-          };
+  </div>
+  <script>
+    //const axios = require('axios').default;
+
+    const App = {
+      data() {
+        return {
+          message: "Hello Element Plus",
+          input: "",
+          result: "",
+          resultObj: "",
+          isTrue: false,
+          currentSquareID :1,
+          currentLine : 1,
+          currentWordArray :[]
+        };
+      },
+      mounted() {
+        this.createSquare()
+        window.addEventListener("keypress", e => {
+          document.getElementById(this.currentSquareID).innerHTML = String.fromCharCode(e.keyCode)
+          this.currentSquareID++
+          this.currentWordArray.push(String.fromCharCode(e.keyCode))
+          if(this.currentWordArray.length == 5){
+            this.postWord(this)
+          }
+        });
+      },
+      methods: {
+        postWord(ethis) {
+          elderThis = ethis
+          axios.get('/games/' + elderThis.getWorldFromCurrentArray())
+            .then(function (response) {
+              // handle success
+              console.log(response);
+              elderThis.result = response.data
+              elderThis.resultObj = response.data;
+              elderThis.resultHandle(response.data)
+
+            })
+            .catch(function (error) {
+              // handle error
+              console.log(error);
+            })
+            .then(function () {
+              // always executed
+            });
+
         },
-      };
-      const app = Vue.createApp(App);
-      app.use(ElementPlus);
-      app.mount("#app");
-    </script>
-  </body>
+        createSquare() {
+          const gameBoard = document.getElementById("board");
+            for (let index = 0; index < 30; index++) {
+              let square = document.createElement("div");
+              square.classList.add("square");
+              square.classList.add("animate__animated");
+              square.setAttribute("id", index + 1);
+              gameBoard.appendChild(square);
+            }
+        },
+        getWorldFromCurrentArray(){
+          result = ""
+          this.currentWordArray.forEach(element => result = result + element);
+          return result
+
+        },
+        resultHandle(data) {
+          if (data.code == 1) {
+            elderThis.isTrue = true
+            data.data.data.WordleArray[0].forEach((value, index) => {
+              if(value.code == 1){
+                //1 The word is in this letter and in the correct position
+                //id = index+1
+                document.getElementById(index+1).style.background = "green"
+              }
+
+              if(value.code == -1){
+                //1 The word is in this letter and in the correct position
+                //id = index+1
+                document.getElementById(index+1).style.background = "yellow"
+              }
+
+              console.log(`Hello ${name}, your index is ${index}!`);
+            })
+          }
+        },
+      },
+      onMounted() {
+        console.log("123")
+      }
+    };
+    const app = Vue.createApp(App);
+    app.use(ElementPlus);
+    app.mount("#app");
+
+
+
+  </script>
+</body>
+
 </html>
