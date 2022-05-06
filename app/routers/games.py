@@ -23,6 +23,7 @@ router = APIRouter(
 
 @router.get("/{word}")
 async def start(word: str, token: Optional[str] = Header(None)):
+    word = word.lower()
     if token is None:
         # new player and  new game
         uid = uuid.uuid4().hex

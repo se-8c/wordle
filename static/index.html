@@ -35,7 +35,7 @@
     </div>
   </div>
   <script>
-    //const axios = require('axios').default;
+
 
     const App = {
       data() {
@@ -44,27 +44,57 @@
           input: "",
           result: "",
           resultObj: "",
-          isTrue: false,
-          currentSquareID :1,
-          currentLine : 1,
-          currentWordArray :[]
+          currentSquareID: 1,
+          currentLine: 0,
+          readyForNewLine: true,
+          currentWordArray: [],
+          token: null
         };
       },
       mounted() {
         this.createSquare()
-        window.addEventListener("keypress", e => {
-          document.getElementById(this.currentSquareID).innerHTML = String.fromCharCode(e.keyCode)
-          this.currentSquareID++
-          this.currentWordArray.push(String.fromCharCode(e.keyCode))
-          if(this.currentWordArray.length == 5){
-            this.postWord(this)
+
+        document.addEventListener("keydown", function (event) {
+          console.log(event.which);
+        })
+
+
+
+        window.addEventListener("keydown", e => {
+
+          if (e.keyCode == 8 || e.keyCode == 46) {
+            //delete
+            if (this.currentWordArray.length > 0) {
+              document.getElementById(this.currentSquareID - 1).innerHTML = null
+              this.currentSquareID--
+              this.currentWordArray.pop()
+            }
+          }
+
+          if (e.keyCode >= 65 && e.keyCode <= 90) {
+            if (this.readyForNewLine == false) {
+              return
+            }
+            document.getElementById(this.currentSquareID).innerHTML = String.fromCharCode(e.keyCode)
+            this.currentSquareID++
+            this.currentWordArray.push(String.fromCharCode(e.keyCode))
+            if (this.currentWordArray.length == 5) {
+              this.postWord(this)
+            }
           }
         });
       },
       methods: {
-        postWord(ethis) {
-          elderThis = ethis
-          axios.get('/games/' + elderThis.getWorldFromCurrentArray())
+
+        postWord(oThis) {
+          elderThis = oThis
+          headers = {}
+          if (elderThis.token != null) {
+            headers = {
+              'token': elderThis.token
+            }
+          }
+          axios.get('/games/' + elderThis.getWorldFromCurrentArray(), { headers: headers })
             .then(function (response) {
               // handle success
               console.log(response);
@@ -84,15 +114,15 @@
         },
         createSquare() {
           const gameBoard = document.getElementById("board");
-            for (let index = 0; index < 30; index++) {
-              let square = document.createElement("div");
-              square.classList.add("square");
-              square.classList.add("animate__animated");
-              square.setAttribute("id", index + 1);
-              gameBoard.appendChild(square);
-            }
+          for (let index = 0; index < 30; index++) {
+            let square = document.createElement("div");
+            square.classList.add("square");
+            square.classList.add("animate__animated");
+            square.setAttribute("id", index + 1);
+            gameBoard.appendChild(square);
+          }
         },
-        getWorldFromCurrentArray(){
+        getWorldFromCurrentArray() {
           result = ""
           this.currentWordArray.forEach(element => result = result + element);
           return result
@@ -100,22 +130,31 @@
         },
         resultHandle(data) {
           if (data.code == 1) {
-            elderThis.isTrue = true
-            data.data.data.WordleArray[0].forEach((value, index) => {
-              if(value.code == 1){
-                //1 The word is in this letter and in the correct position
-                //id = index+1
-                document.getElementById(index+1).style.background = "green"
-              }
 
-              if(value.code == -1){
-                //1 The word is in this letter and in the correct position
-                //id = index+1
-                document.getElementById(index+1).style.background = "yellow"
-              }
+            elderThis.token = data.data.token
+            if (data.code == 1) {
+              data.data.data.WordleArray[elderThis.currentLine].forEach((value, index) => {
+                if (value.code == 1) {
+                  //1 The word is in this letter and in the correct position
+                  //id = index+1
+                  document.getElementById(index + 1).style.background = "green"
+                }
+                if (value.code == -1) {
+                  //1 The word is in this letter and in the correct position
+                  //id = index+1
+                  document.getElementById(index + 1).style.background = "yellow"
+                }
+                console.log(`Hello ${name}, your index is ${index}!`);
+              })
+              elderThis.currentLine++
+              elderThis.currentWordArray = []
+              elderThis.readyForNewLine = true
+            }
+            else {
+              elderThis.readyForNewLine = false
+            }
 
-              console.log(`Hello ${name}, your index is ${index}!`);
-            })
+
           }
         },
       },
