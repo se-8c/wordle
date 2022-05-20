@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class User(BaseModel):
     userId : str
     username: Optional[str] = None
-    lastGameUTCTime: Optional[int] = 0
+    lastGameUTCTime: Optional[float] = 0
     WordleArray: Optional[list] = []
     # status = 1 default
     # status = 2 gaming
@@ -16,6 +16,7 @@ class User(BaseModel):
     # status = 4 finished and success
     status: Optional[int] = 1
     word: Optional[str] = None
+    gameTimes : Optional[int] = 1
 
 class charResult(BaseModel):
     # code = -2 means the letter is not in the word
