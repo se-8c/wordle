@@ -42,7 +42,6 @@ async def start(word: str, token: Optional[str] = Header(None)):
     # if data.status == 3 finished but faild
     # if data.status == 4 finished and success
     if data.status == 1:
-        data.lastGameUTCTime = datetime.now().timestamp()
         data.WordleArray.clear()
         data.status = 2
         data.word = words.getRandomWord()
@@ -55,14 +54,13 @@ async def start(word: str, token: Optional[str] = Header(None)):
         code,array = words.isCorrect(input=word, word=data.word)
         if code == 2: # The word is fully correct. game is finished
             data.WordleArray.append(array)
-            data.lastGameUTCTime = datetime.now().timestamp()
             data.status = 4
             data.gameTimes = data.gameTimes + 1
             return resp_ok_code(code,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
         if code == 3: # The word is partially correct.
             if len(data.WordleArray) >= 5: # game is finished.
                 data.WordleArray.append(array)
-                data.lastGameUTCTime = datetime.now().timestamp()
+
                 data.status = 3
                 data.gameTimes = data.gameTimes + 1
                 return resp_ok_code(code,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
@@ -75,31 +73,27 @@ async def start(word: str, token: Optional[str] = Header(None)):
             return resp_err(-4, "input is not a word")
     
     if data.status == 3 or data.status == 4: # game is finished need to start a new game
-        if data.lastGameUTCTime < (datetime.now() + timedelta(days=1)).timestamp(): # still to wait for 1 day
-            return resp_err(-6, "still need to wait for 24 hours")
-        else:
-            data.status = 2
-            data.WordleArray.clear()
-            data.lastGameUTCTime = datetime.now().timestamp()
-            data.word = words.getRandomWord()
-            code,array = words.isCorrect(input=word, word=data.word)
-            if code == 2: # The word is fully correct. game is finished
+        data.status = 2
+        data.WordleArray.clear()
+
+        data.word = words.getRandomWord()
+        code,array = words.isCorrect(input=word, word=data.word)
+        if code == 2: # The word is fully correct. game is finished
+            data.WordleArray.append(array)
+            data.status = 4
+            data.gameTimes = data.gameTimes + 1
+            return resp_ok_code(2,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
+        if code == 3: # The word is partially correct. game is finished
+            if len(data.WordleArray) >= 4: # game is finished.
                 data.WordleArray.append(array)
-                data.lastGameUTCTime = datetime.now().timestamp()
-                data.status = 4
+
+                data.status = 3
                 data.gameTimes = data.gameTimes + 1
-                return resp_ok_code(2,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
-            if code == 3: # The word is partially correct. game is finished
-                if len(data.WordleArray) >= 4: # game is finished.
-                    data.WordleArray.append(array)
-                    data.lastGameUTCTime = datetime.now().timestamp()
-                    data.status = 3
-                    data.gameTimes = data.gameTimes + 1
-                    return resp_ok_code(3,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
-                else:
-                    data.WordleArray.append(array)
-                    return resp_ok_code(1,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
-            if code == -3: # -3 is meaning the lenght of input is not equal to 5
-                return resp_err(-3, "input is not equal to 5")
-            if code == -4: # -4 is meaning the input is not a word
-                return resp_err(-4, "input is not a word")
+                return resp_ok_code(3,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
+            else:
+                data.WordleArray.append(array)
+                return resp_ok_code(1,{"word":data.word,"data":data.dict(),"token":JWTHelper.encoded_jwt(data.dict())})
+        if code == -3: # -3 is meaning the lenght of input is not equal to 5
+            return resp_err(-3, "input is not equal to 5")
+        if code == -4: # -4 is meaning the input is not a word
+            return resp_err(-4, "input is not a word")

@@ -27,9 +27,11 @@
         <header>
           <h1 class="title">RMIT WORDLE</h1>
         </header>
+        <!--
         <div id="theme_model_button" justify-content="center" align-items="center" display="flex">
           <el-button type="primary" @click="changeTheme">{{themeButtonStr}}</el-button>
         </div>
+        !-->
         <div id="board-container">
           <div id="board"></div>
         </div>
@@ -42,8 +44,7 @@
       <br>
       <p>Game times: {{gameTimes}}</p>
       <br>
-      <p>NEXT WORDLE: {{timeLeft}}</p>
-      <br>
+
       <br>
       <br>
       <span slot="footer" class="dialog-footer">
@@ -82,6 +83,24 @@
         this.themeButtonStr = "dark - theme"
         // init element by local.storage
         this.token = localStorage.getItem("token")
+
+
+        // theme
+        this.theme_model = localStorage.getItem("theme_model")
+        if (this.theme_model == null){
+          this.theme_model = 1
+          localStorage.setItem("theme_model", this.theme_model);
+        }
+        if (this.theme_model == 0) {
+          this.themeButtonStr = "light - theme"
+          document.getElementById("container").style.backgroundColor = "#1a181aff"
+        }
+
+        if (this.theme_model == 1) {
+          this.themeButtonStr = "dark - theme"
+          document.getElementById("container").style.backgroundColor = "Azure"
+        }
+        // theme
         this.pageInit()
         document.addEventListener("keydown", function (event) {
           console.log(event.which);
@@ -174,7 +193,8 @@
           localStorage.setItem("token", data.data.token);
           localStorage.setItem("data", JSON.stringify(data.data));
           elderThis.token = data.data.token
-          if (data.code == 2 || data.code == 3) {
+          elderThis.gameTimes = data.data.data.gameTimes
+          if (data.code == 2 || data.code == 3 || data.code == 1) {
             data.data.data.WordleArray[elderThis.currentLine].forEach((value, index) => {
               if (value.code == 1) {
                 //1 The word is in this letter and in the correct position
@@ -207,9 +227,7 @@
 
 
           if (data.data.data.status == 3 || data.data.data.status == 4) {
-            this.getTimeLeft()
             this.dialogVisible = true
-            this.gameTimes = data.data.gameTimes
 
             if (data.data.data.status == 3) {
               this.gameResultString = "You lose!"
@@ -227,80 +245,51 @@
             return
           }
 
-          // check is next day
-          var date = new Date(Math.floor(data.data.lastGameUTCTime))
-          now = new Date(Date.now())
-          if (now.getDate()!= date.getDate()){
+          if (data.data.status == 2 || data.data.status == 1){
+            squareIndex = 1
+            data.data.WordleArray.forEach((value, index) => {
+              value.forEach((v, i) => {
+                document.getElementById(squareIndex).innerHTML = v.letter
+                if (v.code == 1) {
+                  //1 The word is in this letter and in the correct position
+                  //id = index+1
+                  document.getElementById(squareIndex).style.background = "green"
+                }
+                if (v.code == -1) {
+                  //-1 The word is in this letter and in the correct position
+                  //id = index+1
+                  document.getElementById(squareIndex).style.background = "yellow"
+                }
+                if (v.code == -2) {
+                  //-2 means the letter is not in the word
+                  //id = index+1
+                  document.getElementById(squareIndex).style.background = "grey"
+                }
+                squareIndex = squareIndex + 1
+              })
+            })
+            this.currentLine = data.data.WordleArray.length
+            this.currentSquareID = (this.currentLine * 5) + 1
             return
           }
-
           // square
-          squareIndex = 1
 
-          data.data.WordleArray.forEach((value, index) => {
-            value.forEach((v, i) => {
-              document.getElementById(squareIndex).innerHTML = v.letter
-              if (v.code == 1) {
-                //1 The word is in this letter and in the correct position
-                //id = index+1
-                document.getElementById(squareIndex).style.background = "green"
-              }
-              if (v.code == -1) {
-                //-1 The word is in this letter and in the correct position
-                //id = index+1
-                document.getElementById(squareIndex).style.background = "yellow"
-              }
-              if (v.code == -2) {
-                //-2 means the letter is not in the word
-                //id = index+1
-                document.getElementById(squareIndex).style.background = "grey"
-              }
-              squareIndex = squareIndex + 1
-            })
-          })
           //
 
-          this.currentLine = data.data.WordleArray.length
-          this.currentSquareID = (this.currentLine * 5) + 1
 
-
-          this.dialogVisible = true
-          this.gameTimes = data.data.gameTimes
-          if (data.data.status == 3 || data.data.status == 4) {
-            this.getTimeLeft()
-            if (data.data.status == 3) {
-              this.gameResultString = "You lose!"
-            }
-            if (data.data.status == 4) {
-              this.gameResultString = "You win!"
-            }
-            //this.gameResultMessageBox(message)
-          }
-          else{
-            this.timeLeft = "None"
-          }
-
-          this.allowInput = false
 
         },
 
-        getTimeLeft(){
-          var actualTime = new Date(Date.now());
 
-          var endOfDay = new Date(actualTime.getFullYear(), actualTime.getMonth(), actualTime.getDate() + 1, 0, 0, 0);
-
-          this.timeLeft = endOfDay.getTime() - actualTime.getTime();
-
-          this.timeLeft = (this.timeLeft / 1000 / 60 / 60).toFixed(2) + " hours"
-        },
 
 
         changeTheme() {
           if (this.theme_model == 0) {
+
             this.themeButtonStr = "dark - theme"
             document.getElementById("container").style.backgroundColor = "Azure"
-
             this.theme_model = 1
+            localStorage.setItem("theme_model", this.theme_model);
             return
           }
 
@@ -308,6 +297,7 @@
             this.themeButtonStr = "light - theme"
             document.getElementById("container").style.backgroundColor = "#1a181aff"
             this.theme_model = 0
+            localStorage.setItem("theme_model", this.theme_model);
             return
           }
 

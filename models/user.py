@@ -8,7 +8,6 @@ from pydantic import BaseModel
 class User(BaseModel):
     userId : str
     username: Optional[str] = None
-    lastGameUTCTime: Optional[float] = 0
     WordleArray: Optional[list] = []
     # status = 1 default
     # status = 2 gaming
